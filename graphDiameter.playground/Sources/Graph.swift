@@ -7,6 +7,10 @@ public struct Graph {
         case normal, custom
     }
     
+    public var size: Int {
+        return adjList.count
+    }
+    
     // Convenience init with filename
     public init(fileName: String) {
         adjList = []
