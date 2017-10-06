@@ -1,11 +1,24 @@
 import Foundation
 
+public struct FileResult {
+    let points: Int
+    let tuples: [(Int, Int)]
+}
+
 public class FileReader {
-    public class func read(_ fileName: String) -> [String]? {
+    public class func read(_ fileName: String) -> FileResult? {
         if let path = Bundle.main.path(forResource: fileName, ofType: "txt") {
             do {
                 let data = try String(contentsOfFile: path, encoding: .utf8)
-                return data.components(separatedBy: .newlines).filter { !$0.isEmpty }
+                var contents = data.components(separatedBy: .newlines).filter { !$0.isEmpty }
+                let sizeStr = String(describing: contents.removeFirst())
+                guard let size = Int(sizeStr) else {
+                    print("Wrong format")
+                    return nil
+                }
+                let result = FileResult(points: size, tuples:contents.parse())
+                
+                return result
             } catch {
                 print(error)
                 return nil
@@ -23,3 +36,4 @@ public extension Array where Element == String {
         }
     }
 }
+

@@ -1,68 +1,41 @@
 import Foundation
 
 public struct Graph {
-    private var dict: [Vertex : [Vertex]]
+    private var adjList: [[Int]]
     
     public enum RunType {
         case normal, custom
     }
     
-    public var vertices: [Vertex] {
-        return Array(dict.keys)
-    }
-    
-    public init(arr: [(Int,Int)]) {
-        dict = [:]
-        arr.forEach { edge in
-            let source = Vertex(id: edge.0)
-            let destination = Vertex(id: edge.1)
-            
-            addEdge(from: source, to: destination)
-        }
-    }
-    
     // Convenience init with filename
     public init(fileName: String) {
-        dict = [:]
+        adjList = []
         if let result = FileReader.read(fileName) {
-            let tupleArr = result.parse()
-            
-            tupleArr.forEach { edge in
-                let source = Vertex(id: edge.0)
-                let destination = Vertex(id: edge.1)
-                
-                addEdge(from: source, to: destination)
-            }
+            adjList = Array(repeating: [], count: result.points+1)
+            result.tuples.forEach { addEdge(from: $0.0, to: $0.1) }
         }
     }
     
-    public mutating func addEdge(from source: Vertex, to destination: Vertex) {
-        if let neighbors = dict[source] {
-            dict[source] = neighbors + [destination]
-        } else {
-            dict[source] = [destination]
-        }
+    public mutating func addEdge(from source: Int, to destination: Int) {
+        adjList[source] = adjList[source] + [destination]
     }
     
-    public func bfsCustom(vertex: Vertex) -> MaxDict {
-        var queue = Queue<Vertex>()
+    public func bfsCustom(vertex: Int) -> MaxDict {
+        var queue = Queue<Int>()
         
         var distances = MaxDict()
-        dict.keys.forEach { distances.updateValue(-1, forKey: $0) }
+        (0..<adjList.count).forEach { distances.updateValue(-1, forKey: $0) }
         distances.updateValue(0, forKey: vertex)
         
-        var parent = [Vertex : Vertex]()
-        
         queue.enqueue(vertex)
         
         while !queue.empty() {
             if let front = queue.dequeue() {
-                if let neighbors = dict[front] {
-                    neighbors.forEach { v in
+                if front < adjList.count {
+                    adjList[front].forEach { v in
                         if distances[v] == -1 {
                             queue.enqueue(v)
                             distances[v] = distances[front]! + 1
-                            parent[v] = front
                         }
                     }
                 }
@@ -71,25 +44,22 @@ public struct Graph {
         return distances
     }
     
-    public func bfsNormal(vertex: Vertex) -> [Vertex : Int] {
-        var queue = Queue<Vertex>()
+    public func bfsNormal(vertex: Int) -> [Int : Int] {
+        var queue = Queue<Int>()
         
-        var distances = [Vertex : Int]()
-        dict.keys.forEach { distances.updateValue(-1, forKey: $0) }
+        var distances = [Int : Int]()
+        (0..<adjList.count).forEach { distances.updateValue(-1, forKey: $0) }
         distances[vertex] = 0
         
-        var parent = [Vertex : Vertex]()
-        
         queue.enqueue(vertex)
         
         while !queue.empty() {
             if let front = queue.dequeue() {
-                if let neighbors = dict[front] {
-                    neighbors.forEach { v in
+                if front < adjList.count {
+                    adjList[front].forEach { v in
                         if distances[v] == -1 {
                             queue.enqueue(v)
                             distances[v] = distances[front]! + 1
-                            parent[v] = front
                         }
                     }
                 }
@@ -98,14 +68,10 @@ public struct Graph {
         return distances
     }
     
-    public func getFirstVertex() -> Vertex? {
-        return dict.keys.first
-    }
-    
-    public func eccentricityNormal(_ vertex: Vertex) -> Int {
+    public func eccentricityNormal(_ vertex: Int) -> Int {
         let distances = bfsNormal(vertex: vertex)
         var max: Int = -1
-
+        
         distances.values.forEach { val in
             if val > max {
                 max = val
@@ -114,14 +80,14 @@ public struct Graph {
         return max
     }
     
-    public func eccentricityCustom(_ vertex: Vertex) -> Int {
+    public func eccentricityCustom(_ vertex: Int) -> Int {
         return bfsCustom(vertex: vertex).max
     }
     
     // max eccentricity for entire graph
     public func diameter(type: RunType) -> Int {
         var max: Int = -1
-        vertices.forEach { v in
+        (0..<adjList.count).forEach { v in
             let eccen = (type == .normal) ? eccentricityNormal(v) : eccentricityCustom(v)
             if eccen > max {
                 max = eccen
@@ -132,7 +98,7 @@ public struct Graph {
 }
 
 public struct MaxDict {
-    private var dict: [Vertex : Int]
+    private var dict: [Int : Int]
     
     private var internalMax: Int
     
@@ -145,14 +111,14 @@ public struct MaxDict {
         return internalMax
     }
     
-    mutating public func updateValue(_ val: Int, forKey: Vertex) {
+    mutating public func updateValue(_ val: Int, forKey: Int) {
         dict.updateValue(val, forKey: forKey)
         if val > max {
             internalMax = val
         }
     }
     
-    public subscript(val: Vertex) -> Int? {
+    public subscript(val: Int) -> Int? {
         get {
             return dict[val]
         }
@@ -165,7 +131,7 @@ public struct MaxDict {
         }
     }
     
-    public func normalDict() -> [Vertex : Int] {
+    public func normalDict() -> [Int : Int] {
         return dict
     }
 }

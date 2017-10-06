@@ -17,14 +17,14 @@ public struct Experiment {
     
     public func run(trials: Int, internalLoops: Int) -> Result {
         var result = Result()
-        
+
         (0..<trials).forEach { _ in
-            
+
             operations.forEach { op in
                 let time = timer(internalLoops) {
                     op.block()
                 }
-                
+
                 result.add(time: time, forId: op.id)
             }
         }
@@ -36,7 +36,6 @@ public struct Experiment {
         (0..<loops).forEach { _ in closure() }
         return -now.timeIntervalSinceNow
     }
-    
 }
 
 public struct Operation {
