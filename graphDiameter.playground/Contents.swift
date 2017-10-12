@@ -31,7 +31,7 @@ import Foundation
 //}
 
 // double sweep does not work on paths
-let graph = Graph(fileName: "graph_10")
+let graph = Graph(fileName: "path_10000")
 
 print("Diameter with bruteForce: \(graph.diameter(type: .bruteForce))")
 print("Diameter with akiba: \(graph.diameter(type: .akiba))")
@@ -47,7 +47,7 @@ experiment.add(withId: "custom") {
     graph.diameter(type: .custom)
 }
 
-let result = experiment.run(trials: 3, internalLoops: 1000)
+let result = experiment.run(trials: 1, internalLoops: 1)
 //print("Result: \(result)")
 print("Sum: \(result.sum)")
 print("Average: \(result.average)")
