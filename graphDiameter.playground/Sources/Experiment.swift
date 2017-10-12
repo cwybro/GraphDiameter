@@ -70,8 +70,8 @@ public struct Result {
         
         sum.forEach { (key, value) in
             if key != id {
-                let speedup = value / idTime
-                let explanation = speedup >= 1 ? "faster" : "slower"
+                let speedup = (value/idTime > 1) ? value / idTime : idTime / value
+                let explanation = (value/idTime > 1) ? "faster" : "slower"
                 text += "--> \(speedup.truncate(3))x \(explanation) than \(key)\n"
             }
         }

@@ -52,4 +52,5 @@ let result = experiment.run(trials: 3, internalLoops: 1000)
 print("Sum: \(result.sum)")
 print("Average: \(result.average)")
 result.compare(to: "custom")
+result.compare(to: "bruteForce")
 
