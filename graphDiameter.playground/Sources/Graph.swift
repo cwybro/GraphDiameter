@@ -4,7 +4,7 @@ public struct Graph {
     public var adjList: [[Int]]
     
     public enum RunType {
-        case bruteForce, akiba, custom
+        case bruteForce, akiba, custom1, custom2, custom3
     }
     
     public var size: Int {
@@ -36,7 +36,7 @@ public struct Graph {
     }
 }
 
-// MARK: - Diameter helper methods
+// MARK: - Helper methods
 extension Graph {
     // MARK: Breadth First Search
     private func bfs(aList: [[Int]], vertex: Int) -> [Int : Int] {
@@ -76,6 +76,16 @@ extension Graph {
         return max
     }
     
+    private func eccentricityConcurrent(aList: [[Int]], vertex: Int) -> Int {
+        let distances = bfs(aList: aList, vertex: vertex)
+        var num = MaxInt()
+        
+        DispatchQueue.concurrentPerform(iterations: distances.values.count) { v in
+            num.max = distances[v]!
+        }
+        return num.max
+    }
+    
     private func doubleSweep(_ loops: Int=1) -> Int {
         var diameter = -1
         
@@ -106,7 +116,9 @@ extension Graph {
         switch type {
         case .bruteForce: return bruteForce()
         case .akiba: return akiba()
-        case .custom: return custom()
+        case .custom1: return custom1()
+        case .custom2: return custom2()
+        case .custom3: return custom3()
         }
     }
     
@@ -126,12 +138,35 @@ extension Graph {
         return -1
     }
     
-    private func custom() -> Int {
+    // Concurrent eccentricity computations
+    private func custom1() -> Int {
         let distances = SyncArray()
         DispatchQueue.concurrentPerform(iterations: adjList.count) { v in
             let eccen = eccentricity(aList: self.adjList, vertex: v)
             distances.append(eccen)
         }
         return distances.max()
+    }
+    
+    // Custom 1 & Concurrent max on individual eccentricity computations
+    private func custom2() -> Int {
+        let distances = SyncArray()
+        DispatchQueue.concurrentPerform(iterations: adjList.count) { v in
+            let eccen = eccentricityConcurrent(aList: self.adjList, vertex: v)
+            distances.append(eccen)
+        }
+        return distances.max()
+    }
+    
+    // Brute-force with concurrent eccentricity computations
+    private func custom3() -> Int {
+        var max: Int = -1
+        (0..<adjList.count).forEach { v in
+            let eccen = eccentricityConcurrent(aList: self.adjList, vertex: v)
+            if eccen > max {
+                max = eccen
+            }
+        }
+        return max
     }
 }
