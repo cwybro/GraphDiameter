@@ -64,11 +64,33 @@ public struct Result {
         return sum
     }
     
+    public func compare(to id: String) {
+        var text = "Comparison for \(id):\n"
+        guard let idTime = sum[id] else { return }
+        
+        sum.forEach { (key, value) in
+            if key != id {
+                let speedup = value / idTime
+                let explanation = speedup >= 1 ? "faster" : "slower"
+                text += "--> \(speedup.truncate(3))x \(explanation) than \(key)\n"
+            }
+        }
+        print(text)
+    }
+    
     mutating func add(time: TimeInterval, forId: String) {
         if times[forId] != nil {
             times[forId] = times[forId]! + [time]
         } else {
             times[forId] = [time]
         }
+    }
+}
+
+extension Double
+{
+    func truncate(_ places : Int)-> Double
+    {
+        return Double(floor(pow(10.0, Double(places)) * self)/pow(10.0, Double(places)))
     }
 }

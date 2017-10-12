@@ -47,22 +47,9 @@ experiment.add(withId: "custom") {
     graph.diameter(type: .custom)
 }
 
-let result = experiment.run(trials: 10, internalLoops: 10000)
+let result = experiment.run(trials: 3, internalLoops: 1000)
 //print("Result: \(result)")
 print("Sum: \(result.sum)")
 print("Average: \(result.average)")
-
-//print("Diameter with double sweep: \(graph.doubleSweep())")
-//print("Diameter with normal diameter: \(graph.diameter(type: .normal))")
-
-//var experiment = Experiment()
-//experiment.add(withId: "doubleSweep") {
-//    graph.doubleSweep()
-//}
-//experiment.add(withId: "normalDiam") {
-//    graph.diameter(type: .normal)
-//}
-//let result = experiment.run(trials: 3, internalLoops: 100)
-//print(result)
-//print("results: \(result.average)")
+result.compare(to: "custom")
 
