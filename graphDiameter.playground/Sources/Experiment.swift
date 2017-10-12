@@ -46,13 +46,22 @@ public struct Operation {
 public struct Result {
     public var times: [String : [TimeInterval]] = [:]
     
-    public var averages: [String : TimeInterval] {
+    public var average: [String : TimeInterval] {
         var avg: [String : TimeInterval] = [:]
         times.forEach { (key, value) in
             let reduced = value.reduce(0,+) / TimeInterval(value.count)
             avg[key] = reduced
         }
         return avg
+    }
+    
+    public var sum: [String : TimeInterval] {
+        var sum: [String : TimeInterval] = [:]
+        times.forEach { (key, value) in
+            let singleSum = value.reduce(0,+)
+            sum[key] = singleSum
+        }
+        return sum
     }
     
     mutating func add(time: TimeInterval, forId: String) {

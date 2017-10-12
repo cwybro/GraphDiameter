@@ -12,37 +12,57 @@ import Foundation
 //print("Diameter of large (normal): \(largeGraph.diameter(type: .normal))")
 //print("Diameter of large (custom): \(largeGraph.diameter(type: .custom))")
 
-let veryLarge = Graph(fileName: "path_1000")
+//let veryLarge = Graph(fileName: "path_1000")
+//
+//if veryLarge.diameter(type: .normal) == 1000 && veryLarge.diameter(type: .custom) == 1000 {
+//
+//    var experiment = Experiment()
+//
+//    experiment.add(withId: "custom") {
+//        veryLarge.diameter(type: .custom)
+//    }
+//    experiment.add(withId: "normal") {
+//        veryLarge.diameter(type: .normal)
+//    }
+//
+//    let result = experiment.run(trials: 3, internalLoops: 1)
+//    print(result)
+//    print(result.average)
+//}
 
-if veryLarge.diameter(type: .normal) == 1000 && veryLarge.diameter(type: .custom) == 1000 {
+// double sweep does not work on paths
+let graph = Graph(fileName: "graph_10")
 
-    var experiment = Experiment()
+print("Diameter with bruteForce: \(graph.diameter(type: .bruteForce))")
+print("Diameter with akiba: \(graph.diameter(type: .akiba))")
+print("Diameter with custom: \(graph.diameter(type: .custom))")
 
-    experiment.add(withId: "custom") {
-        veryLarge.diameter(type: .custom)
-    }
-    experiment.add(withId: "normal") {
-        veryLarge.diameter(type: .normal)
-    }
+var experiment = Experiment()
 
-    let result = experiment.run(trials: 3, internalLoops: 1)
-    print(result)
-    print(result.averages)
+experiment.add(withId: "bruteForce") {
+    graph.diameter(type: .bruteForce)
 }
 
-//let path = Graph(fileName: "path_10")
-//let graph = Graph(fileName: "graph_10")
-//
-//print("Path: \(path)")
-//print("Diameter of path (normal): \(path.diameter(type: .normal))")
-//print("Diameter of path (custom): \(path.diameter(type: .custom))")
-//
-//print("Graph: \(graph)")
-//print("Diameter of graph (normal): \(graph.diameter(type: .normal))")
-//print("Diameter of graph (custom): \(graph.diameter(type: .custom))")
-//
-//let veryLarge = Graph(fileName: "path_1000")
-//print("Graph of 1000: \(veryLarge.size)")
-//print("Diameter of graph (normal): \(veryLarge.diameter(type: .normal))")
-//print("Diameter of graph (custom): \(veryLarge.diameter(type: .custom))")
+experiment.add(withId: "custom") {
+    graph.diameter(type: .custom)
+}
+
+let result = experiment.run(trials: 10, internalLoops: 10000)
+//print("Result: \(result)")
+print("Sum: \(result.sum)")
+print("Average: \(result.average)")
+
+//print("Diameter with double sweep: \(graph.doubleSweep())")
+//print("Diameter with normal diameter: \(graph.diameter(type: .normal))")
+
+//var experiment = Experiment()
+//experiment.add(withId: "doubleSweep") {
+//    graph.doubleSweep()
+//}
+//experiment.add(withId: "normalDiam") {
+//    graph.diameter(type: .normal)
+//}
+//let result = experiment.run(trials: 3, internalLoops: 100)
+//print(result)
+//print("results: \(result.average)")
 

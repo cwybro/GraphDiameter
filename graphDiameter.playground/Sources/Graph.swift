@@ -1,14 +1,25 @@
 import Foundation
 
 public struct Graph {
-    private var adjList: [[Int]]
+    public var adjList: [[Int]]
     
     public enum RunType {
-        case normal, custom
+        case bruteForce, akiba, custom
     }
     
     public var size: Int {
         return adjList.count
+    }
+    
+    public var transposedAdjList: [[Int]] {
+        var tAdjList: [[Int]] = Array(repeating: [], count: adjList.count)
+        
+        adjList.enumerated().forEach { index, arr in
+            arr.forEach { num in
+                tAdjList[num] = tAdjList[num] + [index]
+            }
+        }
+        return tAdjList
     }
     
     // Convenience init with filename
@@ -23,44 +34,24 @@ public struct Graph {
     public mutating func addEdge(from source: Int, to destination: Int) {
         adjList[source] = adjList[source] + [destination]
     }
-    
-    public func bfsCustom(vertex: Int) -> MaxDict {
-        var queue = Queue<Int>()
-        
-        var distances = MaxDict()
-        (0..<adjList.count).forEach { distances.updateValue(-1, forKey: $0) }
-        distances.updateValue(0, forKey: vertex)
-        
-        queue.enqueue(vertex)
-        
-        while !queue.empty() {
-            if let front = queue.dequeue() {
-                if front < adjList.count {
-                    adjList[front].forEach { v in
-                        if distances[v] == -1 {
-                            queue.enqueue(v)
-                            distances[v] = distances[front]! + 1
-                        }
-                    }
-                }
-            }
-        }
-        return distances
-    }
-    
-    public func bfsNormal(vertex: Int) -> [Int : Int] {
+}
+
+// MARK: - Diameter helper methods
+extension Graph {
+    // MARK: Breadth First Search
+    private func bfs(aList: [[Int]], vertex: Int) -> [Int : Int] {
         var queue = Queue<Int>()
         
         var distances = [Int : Int]()
-        (0..<adjList.count).forEach { distances.updateValue(-1, forKey: $0) }
+        (0..<aList.count).forEach { distances.updateValue(-1, forKey: $0) }
         distances[vertex] = 0
         
         queue.enqueue(vertex)
         
         while !queue.empty() {
             if let front = queue.dequeue() {
-                if front < adjList.count {
-                    adjList[front].forEach { v in
+                if front < aList.count {
+                    aList[front].forEach { v in
                         if distances[v] == -1 {
                             queue.enqueue(v)
                             distances[v] = distances[front]! + 1
@@ -72,8 +63,9 @@ public struct Graph {
         return distances
     }
     
-    public func eccentricityNormal(_ vertex: Int) -> Int {
-        let distances = bfsNormal(vertex: vertex)
+    // MARK: Eccentricity
+    private func eccentricity(aList: [[Int]], vertex: Int) -> Int {
+        let distances = bfs(aList: aList, vertex: vertex)
         var max: Int = -1
         
         distances.values.forEach { val in
@@ -84,58 +76,62 @@ public struct Graph {
         return max
     }
     
-    public func eccentricityCustom(_ vertex: Int) -> Int {
-        return bfsCustom(vertex: vertex).max
+    private func doubleSweep(_ loops: Int=1) -> Int {
+        var diameter = -1
+        
+        (0..<loops).forEach { _ in
+            // Select random vertex - v
+            let v = Int(arc4random_uniform(UInt32(adjList.count)))
+            
+            // Compute eccentricity and find w
+            var eccen = -1
+            var w = -1
+            let distances = bfs(aList: self.adjList, vertex: v)
+            distances.forEach { if $0.1 > eccen { w = $0.0; eccen = $0.1 } }
+            
+            let wDist = bfs(aList: self.transposedAdjList, vertex: w)
+            let max = wDist.values.max() ?? -1
+            if max > diameter {
+                diameter = max
+            }
+        }
+        return diameter
+    }
+}
+
+// MARK: - Solutions
+extension Graph {
+    // MARK: Diameter
+    public func diameter(type: RunType) -> Int {
+        switch type {
+        case .bruteForce: return bruteForce()
+        case .akiba: return akiba()
+        case .custom: return custom()
+        }
     }
     
-    // max eccentricity for entire graph
-    public func diameter(type: RunType) -> Int {
+    private func bruteForce() -> Int {
+        // Find max distance of performing BFS from all vertices
         var max: Int = -1
         (0..<adjList.count).forEach { v in
-            let eccen = (type == .normal) ? eccentricityNormal(v) : eccentricityCustom(v)
+            let eccen = eccentricity(aList: self.adjList, vertex: v)
             if eccen > max {
                 max = eccen
             }
         }
         return max
     }
-}
-
-public struct MaxDict {
-    private var dict: [Int : Int]
     
-    private var internalMax: Int
-    
-    public init() {
-        dict = [:]
-        internalMax = -1
+    private func akiba() -> Int {
+        return -1
     }
     
-    public var max: Int {
-        return internalMax
-    }
-    
-    mutating public func updateValue(_ val: Int, forKey: Int) {
-        dict.updateValue(val, forKey: forKey)
-        if val > max {
-            internalMax = val
+    private func custom() -> Int {
+        let distances = SyncArray()
+        DispatchQueue.concurrentPerform(iterations: adjList.count) { v in
+            let eccen = eccentricity(aList: self.adjList, vertex: v)
+            distances.append(eccen)
         }
-    }
-    
-    public subscript(val: Int) -> Int? {
-        get {
-            return dict[val]
-        }
-        set {
-            guard let new = newValue else { return }
-            dict[val] = new
-            if new > max {
-                internalMax = new
-            }
-        }
-    }
-    
-    public func normalDict() -> [Int : Int] {
-        return dict
+        return distances.max()
     }
 }
