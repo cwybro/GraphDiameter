@@ -4,7 +4,7 @@ public struct Graph {
     public var adjList: [[Int]]
     
     public enum RunType {
-        case bruteForce, akiba, custom1, custom2, custom3
+        case bruteForce, akiba, parallelBF, custom2, custom3
     }
     
     public var size: Int {
@@ -116,7 +116,7 @@ extension Graph {
         switch type {
         case .bruteForce: return bruteForce()
         case .akiba: return akiba()
-        case .custom1: return custom1()
+        case .parallelBF: return parallelBF()
         case .custom2: return custom2()
         case .custom3: return custom3()
         }
@@ -135,11 +135,21 @@ extension Graph {
     }
     
     private func akiba() -> Int {
+        // Decompose graph into SCCs
+        
+        // init eccentricity upper bound to infinity for each vertex
+        
+        // Double sweep to init diameter lower bound
+        
+        // Loop over all vertexes
+            // Refine eccentricity upper bound
+        
+        // Return diameter lower bound (which should match eccentricity upper bound
         return -1
     }
     
     // Concurrent eccentricity computations
-    private func custom1() -> Int {
+    private func parallelBF() -> Int {
         let distances = SyncArray()
         DispatchQueue.concurrentPerform(iterations: adjList.count) { v in
             let eccen = eccentricity(aList: self.adjList, vertex: v)
